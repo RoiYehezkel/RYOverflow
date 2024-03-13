@@ -1,0 +1,18 @@
+.navbar-container {
+  position: absolute;
+  left: 0%;
+  top: 0%;
+  background-color: rgb(17, 17, 103);
+  height: 100vh;
+  width: 20%;
+}
+
+.navbar-headline {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.navbar-container > ul {
+  color: white;
+}
