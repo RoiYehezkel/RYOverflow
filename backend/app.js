@@ -2,12 +2,16 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 require("dotenv").config();
+const authRoutes = require("./routes/auth");
 
 const app = express();
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: false }));
 app.use(cors());
+
+// Routes
+app.use("/auth", authRoutes);
 
 app.get("/", (req, res, next) => {
   res.status(200).json({ message: "welcome" });
@@ -15,7 +19,7 @@ app.get("/", (req, res, next) => {
 
 app.use((req, res, next) => {
   const error = new Error("Could not find this route.");
-  error.status(404);
+  error.statusCode = 404;
   next(error);
 });
 
