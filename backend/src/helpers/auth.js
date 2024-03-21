@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../../models/user");
 
-const signup = async (email, password) => {
+const createUser = async (email, password) => {
   try {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -27,7 +27,7 @@ const signup = async (email, password) => {
   }
 };
 
-const login = async (email, password) => {
+const connectUser = async (email, password) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
@@ -63,6 +63,6 @@ const login = async (email, password) => {
 };
 
 module.exports = {
-  signup,
-  login,
+  createUser,
+  connectUser,
 };

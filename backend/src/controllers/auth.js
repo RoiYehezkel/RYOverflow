@@ -3,7 +3,7 @@ const helpers = require("../helpers/auth");
 const signup = async (req, res, next) => {
   const { email, password } = req.body;
   try {
-    const user = await helpers.signup(email, password);
+    const user = await helpers.createUser(email, password);
     res.status(200).send({
       message: "user saved successfully",
     });
@@ -15,7 +15,7 @@ const signup = async (req, res, next) => {
 const login = async (req, res, next) => {
   const { email, password } = req.body;
   try {
-    const token = await helpers.login(email, password);
+    const token = await helpers.connectUser(email, password);
     res.status(200).send({ message: "Auth successful", token });
   } catch (e) {
     next(e);
