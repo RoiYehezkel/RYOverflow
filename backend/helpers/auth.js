@@ -32,14 +32,14 @@ const login = async (email, password) => {
     const user = await User.findOne({ email });
     if (!user) {
       const error = new Error("Auth failed");
-      error.statusCode = 401;
+      error.status = 401;
       throw error;
     }
 
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
-      const error = new Error("Auth failed");
-      error.statusCode = 401;
+      const error = new Error("Incorrect password");
+      error.status = 401;
       throw error;
     } else {
       const token = jwt.sign(

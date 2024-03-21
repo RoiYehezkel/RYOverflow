@@ -14,7 +14,12 @@ const disconnect = async () => {
   await mongoServer.stop();
 };
 
+const cleanData = async () => {
+  await mongoose.connection.db.dropDatabase();
+};
+
 module.exports = {
   connect,
   disconnect,
+  cleanData,
 };

@@ -1,11 +1,17 @@
+require("dotenv").config();
 const auth = require("../controllers/auth");
-const { connect, disconnect } = require("./helper/mongodb.memory.test.helper");
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+const {
+  connect,
+  disconnect,
+  cleanData,
+} = require("./helper/mongodb.memory.test.helper");
 const User = require("../models/user");
-
-jest.mock("../models/user");
 
 describe("testing signup", () => {
   beforeAll(connect);
+  beforeEach(cleanData);
   afterAll(disconnect);
 
   it("signup should succeed", async () => {
@@ -23,9 +29,6 @@ describe("testing signup", () => {
 
     const next = jest.fn();
 
-    User.findOne.mockResolvedValueOnce(undefined);
-    User.prototype.save.mockResolvedValueOnce(req.body);
-
     await auth.signup(req, res, next);
 
     expect(res.status).toHaveBeenCalledWith(200);
@@ -36,7 +39,7 @@ describe("testing signup", () => {
     );
   });
 
-  it("signup should fail with status code 409", async () => {
+  it("signup should fail email exist", async () => {
     const req = {
       body: {
         email: "dummy@gmail.com",
@@ -51,7 +54,17 @@ describe("testing signup", () => {
 
     const next = jest.fn();
 
-    User.findOne.mockResolvedValueOnce({ email: req.body.email });
+    const user = new User({
+      _id: new mongoose.Types.ObjectId(),
+      email: req.body.email,
+      password: "password",
+    });
+
+    try {
+      await user.save();
+    } catch (error) {
+      console.log(error);
+    }
 
     await auth.signup(req, res, next);
 
@@ -60,5 +73,104 @@ describe("testing signup", () => {
     const errorPassedToNext = next.mock.calls[0][0];
     expect(errorPassedToNext.message).toBe("Email exists");
     expect(errorPassedToNext.status).toBe(409);
+  });
+});
+
+describe("testing login", () => {
+  beforeAll(connect);
+  beforeEach(cleanData);
+  afterAll(disconnect);
+
+  it("login should succeed", async () => {
+    const req = {
+      body: {
+        email: "dummy@gmail.com",
+        password: "qwerty",
+      },
+    };
+
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+
+    const next = jest.fn();
+
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
+    const user = new User({
+      _id: new mongoose.Types.ObjectId(),
+      email: req.body.email,
+      password: hashedPassword,
+    });
+
+    try {
+      await user.save();
+    } catch (error) {
+      console.log(error);
+    }
+
+    await auth.login(req, res, next);
+    expect(res.status).toHaveBeenCalledWith(200);
+  });
+
+  it("login should fail when user not exist", async () => {
+    const req = {
+      body: {
+        email: "dummy@gmail.com",
+        password: "qwerty",
+      },
+    };
+
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+
+    const next = jest.fn();
+
+    await auth.login(req, res, next);
+    expect(res.send).not.toHaveBeenCalled();
+    expect(res.status).not.toHaveBeenCalled();
+    const errorPassedToNext = next.mock.calls[0][0];
+    expect(errorPassedToNext.message).toBe("Auth failed");
+    expect(errorPassedToNext.status).toBe(401);
+  });
+
+  it("login should fail with wrong password", async () => {
+    const req = {
+      body: {
+        email: "dummy@gmail.com",
+        password: "qwerty",
+      },
+    };
+
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+
+    const next = jest.fn();
+
+    const hashedPassword = await bcrypt.hash(req.body.password + "pass", 10);
+
+    const user = new User({
+      _id: new mongoose.Types.ObjectId(),
+      email: req.body.email,
+      password: hashedPassword,
+    });
+
+    try {
+      await user.save();
+    } catch (error) {
+      console.log(error);
+    }
+
+    await auth.login(req, res, next);
+    expect(res.send).not.toHaveBeenCalled();
+    expect(res.status).not.toHaveBeenCalled();
+    const errorPassedToNext = next.mock.calls[0][0];
+    expect(errorPassedToNext.message).toBe("Incorrect password");
+    expect(errorPassedToNext.status).toBe(401);
   });
 });
