@@ -112,6 +112,12 @@ describe("testing login", () => {
 
     await auth.login(req, res, next);
     expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Auth successful",
+        token: expect.any(String),
+      })
+    );
   });
 
   it("login should fail when user not exist", async () => {
