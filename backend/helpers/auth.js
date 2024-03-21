@@ -8,7 +8,7 @@ const signup = async (email, password) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       const error = new Error("Email exists");
-      error.statusCode = 409;
+      error.status = 409;
       throw error;
     }
 

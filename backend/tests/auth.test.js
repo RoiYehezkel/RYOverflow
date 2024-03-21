@@ -1,6 +1,4 @@
 const auth = require("../controllers/auth");
-const mongoose = require("mongoose");
-const { MongoMemoryServer } = require("mongodb-memory-server");
 const { connect, disconnect } = require("./helper/mongodb.memory.test.helper");
 const User = require("../models/user");
 
@@ -30,14 +28,37 @@ describe("testing signup", () => {
 
     await auth.signup(req, res, next);
 
-    // Check if status 200 is sent back
     expect(res.status).toHaveBeenCalledWith(200);
-
-    // Optionally, you can also check if a response is sent
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({
         message: "user saved successfully",
       })
     );
+  });
+
+  it("signup should fail with status code 409", async () => {
+    const req = {
+      body: {
+        email: "dummy@gmail.com",
+        password: "qwerty",
+      },
+    };
+
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+
+    const next = jest.fn();
+
+    User.findOne.mockResolvedValueOnce({ email: req.body.email });
+
+    await auth.signup(req, res, next);
+
+    expect(res.send).not.toHaveBeenCalled();
+    expect(res.status).not.toHaveBeenCalled();
+    const errorPassedToNext = next.mock.calls[0][0];
+    expect(errorPassedToNext.message).toBe("Email exists");
+    expect(errorPassedToNext.status).toBe(409);
   });
 });
