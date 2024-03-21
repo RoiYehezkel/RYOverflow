@@ -1,12 +1,12 @@
 require("dotenv").config();
-const auth = require("../controllers/auth");
+const auth = require("../src/controllers/auth");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const {
   connect,
   disconnect,
   cleanData,
-} = require("./helper/mongodb.memory.test.helper");
+} = require("./dbConnection/mongodb.memory.test.helper");
 const User = require("../models/user");
 
 describe("testing signup", () => {
